@@ -93,7 +93,8 @@ public class FeedProcessingService {
             dynamicTableService.createTableIfNotExists(
                 feedConfig.getTableName(), 
                 Arrays.asList(headers), 
-                feedConfig.getIdColumn()
+                feedConfig.getIdColumn(),
+                feedConfig.getSchema()
             );
             
             String jobName = feedConfig.getName() + "_" + System.currentTimeMillis();

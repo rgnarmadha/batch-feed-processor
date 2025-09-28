@@ -20,6 +20,7 @@ public class FeedConfiguration {
         private String tableName;
         private String idColumn;
         private boolean enabled = true;
+        private SchemaConfig schema;
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -35,6 +36,43 @@ public class FeedConfiguration {
         
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        
+        public SchemaConfig getSchema() { return schema; }
+        public void setSchema(SchemaConfig schema) { this.schema = schema; }
+    }
+    
+    public static class SchemaConfig {
+        private List<ColumnConfig> columns;
+        
+        public List<ColumnConfig> getColumns() { return columns; }
+        public void setColumns(List<ColumnConfig> columns) { this.columns = columns; }
+    }
+    
+    public static class ColumnConfig {
+        private String name;
+        private String type;
+        private boolean nullable = true;
+        private boolean primaryKey = false;
+        private boolean unique = false;
+        private String defaultValue;
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public boolean isNullable() { return nullable; }
+        public void setNullable(boolean nullable) { this.nullable = nullable; }
+        
+        public boolean isPrimaryKey() { return primaryKey; }
+        public void setPrimaryKey(boolean primaryKey) { this.primaryKey = primaryKey; }
+        
+        public boolean isUnique() { return unique; }
+        public void setUnique(boolean unique) { this.unique = unique; }
+        
+        public String getDefaultValue() { return defaultValue; }
+        public void setDefaultValue(String defaultValue) { this.defaultValue = defaultValue; }
     }
 
     public String getInputDirectory() { return inputDirectory; }

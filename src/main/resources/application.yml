@@ -53,61 +53,272 @@ feed:
     processed-directory: ${FEED_PROCESSED_DIR:./processed}
     error-directory: ${FEED_ERROR_DIR:./error}
     
-    # Feed configurations
+    # Feed configurations with metadata schema definitions
     feeds:
       - name: "customer_feed"
         file-pattern: "customer_*.csv"
         table-name: "customers"
         id-column: "customer_id"
         enabled: true
+        schema:
+          columns:
+            - name: "customer_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "first_name"
+              type: "VARCHAR(100)"
+              nullable: false
+            - name: "last_name"
+              type: "VARCHAR(100)"
+              nullable: false
+            - name: "email"
+              type: "VARCHAR(255)"
+              nullable: false
+              unique: true
+            - name: "phone"
+              type: "VARCHAR(20)"
+              nullable: true
+            - name: "address"
+              type: "VARCHAR(500)"
+              nullable: true
+            - name: "city"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "state"
+              type: "VARCHAR(50)"
+              nullable: true
+            - name: "zip_code"
+              type: "VARCHAR(20)"
+              nullable: true
         
       - name: "product_feed"
         file-pattern: "product_*.csv"
         table-name: "products"
         id-column: "product_id"
         enabled: true
+        schema:
+          columns:
+            - name: "product_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "name"
+              type: "VARCHAR(255)"
+              nullable: false
+            - name: "category"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "price"
+              type: "DECIMAL(10,2)"
+              nullable: true
+            - name: "description"
+              type: "TEXT"
+              nullable: true
+            - name: "sku"
+              type: "VARCHAR(100)"
+              nullable: true
+              unique: true
+            - name: "brand"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "weight"
+              type: "VARCHAR(50)"
+              nullable: true
         
       - name: "order_feed"
         file-pattern: "order_*.csv"
         table-name: "orders"
         id-column: "order_id"
         enabled: true
+        schema:
+          columns:
+            - name: "order_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "customer_id"
+              type: "VARCHAR(50)"
+              nullable: false
+            - name: "order_date"
+              type: "DATE"
+              nullable: false
+            - name: "total_amount"
+              type: "DECIMAL(10,2)"
+              nullable: false
+            - name: "status"
+              type: "VARCHAR(50)"
+              nullable: false
+              default: "'PENDING'"
+            - name: "shipping_address"
+              type: "VARCHAR(500)"
+              nullable: true
         
       - name: "inventory_feed"
         file-pattern: "inventory_*.csv"
         table-name: "inventory"
         id-column: "item_id"
         enabled: true
+        schema:
+          columns:
+            - name: "item_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "product_id"
+              type: "VARCHAR(50)"
+              nullable: false
+            - name: "quantity"
+              type: "INTEGER"
+              nullable: false
+              default: "0"
+            - name: "location"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "last_updated"
+              type: "TIMESTAMP"
+              nullable: true
         
       - name: "supplier_feed"
         file-pattern: "supplier_*.csv"
         table-name: "suppliers"
         id-column: "supplier_id"
         enabled: true
+        schema:
+          columns:
+            - name: "supplier_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "company_name"
+              type: "VARCHAR(255)"
+              nullable: false
+            - name: "contact_person"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "email"
+              type: "VARCHAR(255)"
+              nullable: true
+            - name: "phone"
+              type: "VARCHAR(20)"
+              nullable: true
+            - name: "address"
+              type: "VARCHAR(500)"
+              nullable: true
         
       - name: "category_feed"
         file-pattern: "category_*.csv"
         table-name: "categories"
         id-column: "category_id"
         enabled: true
+        schema:
+          columns:
+            - name: "category_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "name"
+              type: "VARCHAR(100)"
+              nullable: false
+            - name: "description"
+              type: "TEXT"
+              nullable: true
+            - name: "parent_category_id"
+              type: "VARCHAR(50)"
+              nullable: true
         
       - name: "employee_feed"
         file-pattern: "employee_*.csv"
         table-name: "employees"
         id-column: "employee_id"
         enabled: true
+        schema:
+          columns:
+            - name: "employee_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "first_name"
+              type: "VARCHAR(100)"
+              nullable: false
+            - name: "last_name"
+              type: "VARCHAR(100)"
+              nullable: false
+            - name: "email"
+              type: "VARCHAR(255)"
+              nullable: false
+              unique: true
+            - name: "department"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "position"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "salary"
+              type: "DECIMAL(10,2)"
+              nullable: true
+            - name: "hire_date"
+              type: "DATE"
+              nullable: true
         
       - name: "transaction_feed"
         file-pattern: "transaction_*.csv"
         table-name: "transactions"
         id-column: "transaction_id"
         enabled: true
+        schema:
+          columns:
+            - name: "transaction_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "order_id"
+              type: "VARCHAR(50)"
+              nullable: false
+            - name: "payment_method"
+              type: "VARCHAR(50)"
+              nullable: false
+            - name: "amount"
+              type: "DECIMAL(10,2)"
+              nullable: false
+            - name: "transaction_date"
+              type: "TIMESTAMP"
+              nullable: false
+            - name: "status"
+              type: "VARCHAR(50)"
+              nullable: false
+              default: "'PENDING'"
         
       - name: "location_feed"
         file-pattern: "location_*.csv"
         table-name: "locations"
         id-column: "location_id"
         enabled: true
+        schema:
+          columns:
+            - name: "location_id"
+              type: "VARCHAR(50)"
+              nullable: false
+              primary-key: true
+            - name: "name"
+              type: "VARCHAR(255)"
+              nullable: false
+            - name: "address"
+              type: "VARCHAR(500)"
+              nullable: true
+            - name: "city"
+              type: "VARCHAR(100)"
+              nullable: true
+            - name: "state"
+              type: "VARCHAR(50)"
+              nullable: true
+            - name: "zip_code"
+              type: "VARCHAR(20)"
+              nullable: true
+            - name: "country"
+              type: "VARCHAR(100)"
+              nullable: true
+              default: "'USA'"
 
 # Scheduling Configuration
 scheduling:

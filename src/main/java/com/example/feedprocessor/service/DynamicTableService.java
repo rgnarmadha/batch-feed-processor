@@ -1,5 +1,6 @@
 package com.example.feedprocessor.service;
 
+import com.example.feedprocessor.config.FeedConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,19 @@ public class DynamicTableService {
     private static final int BATCH_SIZE = 1000;
     
     public void createTableIfNotExists(String tableName, List<String> headers, String idColumn) {
+        createTableIfNotExists(tableName, headers, idColumn, null);
+    }
+    
+    public void createTableIfNotExists(String tableName, List<String> headers, String idColumn, 
+                                     FeedConfiguration.SchemaConfig schema) {
         try {
             if (!tableExists(tableName)) {
-                String createTableSql = buildCreateTableSql(tableName, headers, idColumn);
+                String createTableSql = buildCreateTableSql(tableName, headers, idColumn, schema);
                 logger.info("Creating table: {}", tableName);
                 logger.debug("SQL: {}", createTableSql);
                 jdbcTemplate.execute(createTableSql);
             } else {
-                addMissingColumns(tableName, headers);
+                addMissingColumns(tableName, headers, schema);
             }
         } catch (Exception e) {
             logger.error("Error creating/updating table {}: {}", tableName, e.getMessage(), e);
@@ -49,17 +55,52 @@ public class DynamicTableService {
     }
     
     private String buildCreateTableSql(String tableName, List<String> headers, String idColumn) {
+        return buildCreateTableSql(tableName, headers, idColumn, null);
+    }
+    
+    private String buildCreateTableSql(String tableName, List<String> headers, String idColumn, 
+                                     FeedConfiguration.SchemaConfig schema) {
         StringBuilder sql = new StringBuilder();
         sql.append("CREATE TABLE ").append(tableName).append(" (");
+        
+        Map<String, FeedConfiguration.ColumnConfig> columnConfigMap = null;
+        if (schema != null && schema.getColumns() != null) {
+            columnConfigMap = schema.getColumns().stream()
+                    .collect(Collectors.toMap(
+                            col -> sanitizeColumnName(col.getName()),
+                            col -> col
+                    ));
+        }
         
         for (int i = 0; i < headers.size(); i++) {
             String column = sanitizeColumnName(headers.get(i));
             sql.append(column);
             
-            if (column.equalsIgnoreCase(idColumn)) {
-                sql.append(" VARCHAR(255) PRIMARY KEY");
+            FeedConfiguration.ColumnConfig columnConfig = columnConfigMap != null ? 
+                    columnConfigMap.get(column) : null;
+            
+            if (columnConfig != null) {
+                sql.append(" ").append(columnConfig.getType());
+                
+                if (columnConfig.isPrimaryKey()) {
+                    sql.append(" PRIMARY KEY");
+                } else {
+                    if (!columnConfig.isNullable()) {
+                        sql.append(" NOT NULL");
+                    }
+                    if (columnConfig.isUnique()) {
+                        sql.append(" UNIQUE");
+                    }
+                    if (columnConfig.getDefaultValue() != null) {
+                        sql.append(" DEFAULT ").append(columnConfig.getDefaultValue());
+                    }
+                }
             } else {
-                sql.append(" VARCHAR(1000)");
+                if (column.equalsIgnoreCase(idColumn)) {
+                    sql.append(" VARCHAR(255) PRIMARY KEY");
+                } else {
+                    sql.append(" VARCHAR(1000)");
+                }
             }
             
             if (i < headers.size() - 1) {
@@ -75,15 +116,46 @@ public class DynamicTableService {
     }
     
     private void addMissingColumns(String tableName, List<String> headers) {
+        addMissingColumns(tableName, headers, null);
+    }
+    
+    private void addMissingColumns(String tableName, List<String> headers, 
+                                 FeedConfiguration.SchemaConfig schema) {
         try {
             List<String> existingColumns = getExistingColumns(tableName);
+            
+            Map<String, FeedConfiguration.ColumnConfig> columnConfigMap = null;
+            if (schema != null && schema.getColumns() != null) {
+                columnConfigMap = schema.getColumns().stream()
+                        .collect(Collectors.toMap(
+                                col -> sanitizeColumnName(col.getName()),
+                                col -> col
+                        ));
+            }
             
             for (String header : headers) {
                 String columnName = sanitizeColumnName(header);
                 if (!existingColumns.contains(columnName.toUpperCase())) {
-                    String alterSql = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " VARCHAR(1000)";
+                    FeedConfiguration.ColumnConfig columnConfig = columnConfigMap != null ? 
+                            columnConfigMap.get(columnName) : null;
+                    
+                    StringBuilder alterSql = new StringBuilder();
+                    alterSql.append("ALTER TABLE ").append(tableName).append(" ADD COLUMN ").append(columnName);
+                    
+                    if (columnConfig != null) {
+                        alterSql.append(" ").append(columnConfig.getType());
+                        if (!columnConfig.isNullable()) {
+                            alterSql.append(" NOT NULL");
+                        }
+                        if (columnConfig.getDefaultValue() != null) {
+                            alterSql.append(" DEFAULT ").append(columnConfig.getDefaultValue());
+                        }
+                    } else {
+                        alterSql.append(" VARCHAR(1000)");
+                    }
+                    
                     logger.info("Adding missing column {} to table {}", columnName, tableName);
-                    jdbcTemplate.execute(alterSql);
+                    jdbcTemplate.execute(alterSql.toString());
                 }
             }
         } catch (Exception e) {
