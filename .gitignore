@@ -1,0 +1,31 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.classpath
+.project
+.settings/
+.vscode/
+*.iml
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application specific
+processed/*.csv
+error/*.csv
+*.log
+
+# Python scripts (data generation utilities)
+generate_*.py
+
+# H2 Database files
+*.db
+*.trace.db
+*.lock.db
