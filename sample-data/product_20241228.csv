@@ -1,0 +1,6 @@
+product_id,name,category,price,description,sku,brand,weight
+PROD001,Laptop,Electronics,999.99,High-performance laptop,LAP001,TechBrand,2.5
+PROD002,Mouse,Electronics,29.99,Wireless optical mouse,MOU001,TechBrand,0.2
+PROD003,Keyboard,Electronics,79.99,Mechanical keyboard,KEY001,TechBrand,1.1
+PROD004,Monitor,Electronics,299.99,24-inch LED monitor,MON001,TechBrand,5.2
+PROD005,Headphones,Electronics,149.99,Noise-canceling headphones,HEAD001,AudioBrand,0.8

@@ -1,0 +1,11 @@
+# This directory is for input CSV files
+# Place your feed files here following the configured patterns:
+# - customer_*.csv
+# - product_*.csv
+# - order_*.csv
+# - inventory_*.csv
+# - supplier_*.csv
+# - category_*.csv
+# - employee_*.csv
+# - transaction_*.csv
+# - location_*.csv
