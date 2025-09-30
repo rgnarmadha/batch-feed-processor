@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.example.feedprocessor.config.DirectoryConfiguration;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -27,7 +28,10 @@ public class FeedProcessingService {
     private static final Logger logger = LoggerFactory.getLogger(FeedProcessingService.class);
     
     @Autowired
-    private FeedConfiguration feedConfiguration;
+    private DirectoryConfiguration directoryConfiguration;
+    
+    @Autowired
+    private FeedConfigurationAdapter feedConfigurationAdapter;
     
     @Autowired
     private BatchConfiguration batchConfiguration;
@@ -41,17 +45,28 @@ public class FeedProcessingService {
     public void processAllFeeds() {
         logger.info("Starting feed processing for all configured feeds");
         
-        createDirectoriesIfNotExist();
-        
-        for (FeedConfiguration.FeedConfig feedConfig : feedConfiguration.getFeeds()) {
-            if (feedConfig.isEnabled()) {
-                processFeed(feedConfig);
-            } else {
-                logger.info("Skipping disabled feed: {}", feedConfig.getName());
+        try {
+            createDirectoriesIfNotExist();
+            
+            System.out.println("DEBUG: About to call feedConfigurationAdapter.getAllEnabledFeeds()");
+            List<FeedConfiguration.FeedConfig> enabledFeeds = feedConfigurationAdapter.getAllEnabledFeeds();
+            System.out.println("DEBUG: Retrieved " + enabledFeeds.size() + " enabled feeds");
+            
+            for (FeedConfiguration.FeedConfig feedConfig : enabledFeeds) {
+                if (feedConfig.isEnabled()) {
+                    processFeed(feedConfig);
+                } else {
+                    logger.info("Skipping disabled feed: {}", feedConfig.getName());
+                }
             }
+            
+            logger.info("Completed feed processing for all feeds");
+        } catch (Exception e) {
+            logger.error("Error during feed processing: {}", e.getMessage(), e);
+            System.err.println("ERROR in processAllFeeds: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-        
-        logger.info("Completed feed processing for all feeds");
     }
     
     private void processFeed(FeedConfiguration.FeedConfig feedConfig) {
@@ -79,7 +94,7 @@ public class FeedProcessingService {
         try {
             logger.info("Processing file: {} for feed: {}", file.getName(), feedConfig.getName());
             
-            FeedItemReader reader = new FeedItemReader(file.getAbsolutePath());
+            FeedItemReader reader = new FeedItemReader(file.getAbsolutePath(), feedConfig);
             reader.read();
             String[] headers = reader.getHeaders();
             reader.close();
@@ -104,7 +119,8 @@ public class FeedProcessingService {
                 feedConfig.getTableName(),
                 feedConfig.getIdColumn(),
                 feedConfig.getName(),
-                file.getName()
+                file.getName(),
+                feedConfig
             );
             
             JobParameters jobParameters = new JobParametersBuilder()
@@ -126,10 +142,10 @@ public class FeedProcessingService {
     }
     
     private List<File> findMatchingFiles(String pattern) {
-        File inputDir = new File(feedConfiguration.getInputDirectory());
+        File inputDir = new File(directoryConfiguration.getInputDirectory());
         
         if (!inputDir.exists() || !inputDir.isDirectory()) {
-            logger.warn("Input directory does not exist: {}", feedConfiguration.getInputDirectory());
+            logger.warn("Input directory does not exist: {}", directoryConfiguration.getInputDirectory());
             return Arrays.asList();
         }
         
@@ -142,9 +158,14 @@ public class FeedProcessingService {
     }
     
     private void createDirectoriesIfNotExist() {
-        createDirectoryIfNotExist(feedConfiguration.getInputDirectory());
-        createDirectoryIfNotExist(feedConfiguration.getProcessedDirectory());
-        createDirectoryIfNotExist(feedConfiguration.getErrorDirectory());
+        logger.info("Creating directories if they don't exist");
+        logger.info("inputDirectory = {}", directoryConfiguration.getInputDirectory());
+        logger.info("processedDirectory = {}", directoryConfiguration.getProcessedDirectory());
+        logger.info("errorDirectory = {}", directoryConfiguration.getErrorDirectory());
+        
+        createDirectoryIfNotExist(directoryConfiguration.getInputDirectory());
+        createDirectoryIfNotExist(directoryConfiguration.getProcessedDirectory());
+        createDirectoryIfNotExist(directoryConfiguration.getErrorDirectory());
     }
     
     private void createDirectoryIfNotExist(String directory) {
@@ -160,11 +181,11 @@ public class FeedProcessingService {
     }
     
     private void moveFileToProcessed(File file) {
-        moveFile(file, feedConfiguration.getProcessedDirectory());
+        moveFile(file, directoryConfiguration.getProcessedDirectory());
     }
     
     private void moveFileToError(File file) {
-        moveFile(file, feedConfiguration.getErrorDirectory());
+        moveFile(file, directoryConfiguration.getErrorDirectory());
     }
     
     private void moveFile(File file, String targetDirectory) {

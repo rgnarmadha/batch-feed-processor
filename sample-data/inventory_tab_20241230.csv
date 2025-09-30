@@ -1,0 +1,4 @@
+item_id	product_id	quantity	location	last_updated
+INV001	PROD001	50	Warehouse A	2024-12-30
+INV002	PROD002	100	Warehouse B	2024-12-30
+INV003	PROD003	75	Warehouse A	2024-12-30

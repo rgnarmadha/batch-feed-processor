@@ -1,0 +1,4 @@
+product_id;name;description;price;category;supplier_id
+PROD001;Laptop;High-performance laptop;999.99;Electronics;SUP001
+PROD002;Mouse;Wireless optical mouse;29.99;Electronics;SUP002
+PROD003;Keyboard;Mechanical keyboard;79.99;Electronics;SUP001

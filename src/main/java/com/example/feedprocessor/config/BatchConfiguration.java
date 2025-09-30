@@ -1,6 +1,7 @@
 package com.example.feedprocessor.config;
 
 import com.example.feedprocessor.batch.*;
+import com.example.feedprocessor.config.FeedConfiguration;
 import com.example.feedprocessor.repository.ProcessingReportRepository;
 import com.example.feedprocessor.service.DynamicTableService;
 import org.springframework.batch.core.Job;
@@ -31,20 +32,21 @@ public class BatchConfiguration {
     private ProcessingReportRepository reportRepository;
     
     public Job createFeedProcessingJob(String jobName, String filePath, String tableName, 
-                                     String idColumn, String feedName, String fileName) {
+                                     String idColumn, String feedName, String fileName, 
+                                     FeedConfiguration.FeedConfig feedConfig) {
         
         FeedProcessingListener listener = new FeedProcessingListener(reportRepository, feedName, fileName, tableName);
         
         return new JobBuilder(jobName, jobRepository)
                 .listener(listener)
-                .start(createFeedProcessingStep(filePath, tableName, idColumn, listener))
+                .start(createFeedProcessingStep(filePath, tableName, idColumn, listener, feedConfig))
                 .build();
     }
     
     private Step createFeedProcessingStep(String filePath, String tableName, String idColumn, 
-                                        FeedProcessingListener listener) {
+                                        FeedProcessingListener listener, FeedConfiguration.FeedConfig feedConfig) {
         
-        FeedItemReader reader = new FeedItemReader(filePath);
+        FeedItemReader reader = new FeedItemReader(filePath, feedConfig);
         FeedItemProcessor processor = new FeedItemProcessor(idColumn);
         FeedItemWriter writer = new FeedItemWriter(dynamicTableService, tableName, idColumn, listener);
         

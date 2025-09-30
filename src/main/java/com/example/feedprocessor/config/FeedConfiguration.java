@@ -1,11 +1,9 @@
 package com.example.feedprocessor.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 @ConfigurationProperties(prefix = "feed.processor")
 public class FeedConfiguration {
     
@@ -21,6 +19,10 @@ public class FeedConfiguration {
         private String idColumn;
         private boolean enabled = true;
         private SchemaConfig schema;
+        private String delimiter = ",";
+        private String quoteChar = "\"";
+        private String escapeChar = "\\";
+        private boolean skipHeaderRecord = true;
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
@@ -39,6 +41,18 @@ public class FeedConfiguration {
         
         public SchemaConfig getSchema() { return schema; }
         public void setSchema(SchemaConfig schema) { this.schema = schema; }
+        
+        public String getDelimiter() { return delimiter; }
+        public void setDelimiter(String delimiter) { this.delimiter = delimiter; }
+        
+        public String getQuoteChar() { return quoteChar; }
+        public void setQuoteChar(String quoteChar) { this.quoteChar = quoteChar; }
+        
+        public String getEscapeChar() { return escapeChar; }
+        public void setEscapeChar(String escapeChar) { this.escapeChar = escapeChar; }
+        
+        public boolean isSkipHeaderRecord() { return skipHeaderRecord; }
+        public void setSkipHeaderRecord(boolean skipHeaderRecord) { this.skipHeaderRecord = skipHeaderRecord; }
     }
     
     public static class SchemaConfig {
@@ -75,14 +89,32 @@ public class FeedConfiguration {
         public void setDefaultValue(String defaultValue) { this.defaultValue = defaultValue; }
     }
 
-    public String getInputDirectory() { return inputDirectory; }
-    public void setInputDirectory(String inputDirectory) { this.inputDirectory = inputDirectory; }
+    public String getInputDirectory() { 
+        System.out.println("DEBUG: getInputDirectory() called, returning: " + inputDirectory);
+        return inputDirectory; 
+    }
+    public void setInputDirectory(String inputDirectory) { 
+        System.out.println("DEBUG: setInputDirectory() called with: " + inputDirectory);
+        this.inputDirectory = inputDirectory; 
+    }
     
-    public String getProcessedDirectory() { return processedDirectory; }
-    public void setProcessedDirectory(String processedDirectory) { this.processedDirectory = processedDirectory; }
+    public String getProcessedDirectory() { 
+        System.out.println("DEBUG: getProcessedDirectory() called, returning: " + processedDirectory);
+        return processedDirectory; 
+    }
+    public void setProcessedDirectory(String processedDirectory) { 
+        System.out.println("DEBUG: setProcessedDirectory() called with: " + processedDirectory);
+        this.processedDirectory = processedDirectory; 
+    }
     
-    public String getErrorDirectory() { return errorDirectory; }
-    public void setErrorDirectory(String errorDirectory) { this.errorDirectory = errorDirectory; }
+    public String getErrorDirectory() { 
+        System.out.println("DEBUG: getErrorDirectory() called, returning: " + errorDirectory);
+        return errorDirectory; 
+    }
+    public void setErrorDirectory(String errorDirectory) { 
+        System.out.println("DEBUG: setErrorDirectory() called with: " + errorDirectory);
+        this.errorDirectory = errorDirectory; 
+    }
     
     public List<FeedConfig> getFeeds() { return feeds; }
     public void setFeeds(List<FeedConfig> feeds) { this.feeds = feeds; }

@@ -1,6 +1,10 @@
 package com.example.feedprocessor.batch;
 
+import com.example.feedprocessor.config.FeedConfiguration;
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +24,14 @@ public class FeedItemReader implements ItemReader<Map<String, String>> {
     private static final Logger logger = LoggerFactory.getLogger(FeedItemReader.class);
     
     private final String filePath;
+    private final FeedConfiguration.FeedConfig feedConfig;
     private CSVReader csvReader;
     private String[] headers;
     private boolean initialized = false;
     
-    public FeedItemReader(String filePath) {
+    public FeedItemReader(String filePath, FeedConfiguration.FeedConfig feedConfig) {
         this.filePath = filePath;
+        this.feedConfig = feedConfig;
     }
     
     @Override
@@ -48,8 +54,24 @@ public class FeedItemReader implements ItemReader<Map<String, String>> {
     }
     
     private void initialize() throws IOException, CsvException {
-        logger.info("Initializing CSV reader for file: {}", filePath);
-        csvReader = new CSVReader(new FileReader(filePath));
+        logger.info("Initializing CSV reader for file: {} with delimiter: '{}'", filePath, feedConfig.getDelimiter());
+        
+        char delimiter = feedConfig.getDelimiter().charAt(0);
+        char quoteChar = feedConfig.getQuoteChar().charAt(0);
+        char escapeChar = feedConfig.getEscapeChar().charAt(0);
+        
+        CSVParser parser = new CSVParserBuilder()
+                .withSeparator(delimiter)
+                .withQuoteChar(quoteChar)
+                .withEscapeChar(escapeChar)
+                .build();
+        
+        FileReader fileReader = new FileReader(filePath);
+        csvReader = new CSVReaderBuilder(fileReader)
+                .withCSVParser(parser)
+                .withSkipLines(feedConfig.isSkipHeaderRecord() ? 0 : 1)
+                .build();
+        
         headers = csvReader.readNext();
         
         if (headers == null || headers.length == 0) {
